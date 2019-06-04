@@ -42,7 +42,7 @@ class App extends React.Component {
   }
 
   refetchData() {
-    fetch('/releases')
+    fetch('/api/releases')
       .then(res => res.json())
       .then(
         result => {

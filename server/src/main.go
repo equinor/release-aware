@@ -156,7 +156,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 func main() {
 	r := gin.Default()
 	
-	r.GET("/releases", func(c *gin.Context) {
+	r.GET("/api/releases", func(c *gin.Context) {
 		releases := []Release{}
 
 		for _, repositoryName := range getGithubRepositories() {
