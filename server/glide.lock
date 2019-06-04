@@ -1,0 +1,43 @@
+hash: b86bed417cbc6cbab92d8ba70a93f0bb770c6b6252f117f96fc61dfedce79a81
+updated: 2019-06-03T15:02:19.569833+02:00
+imports:
+- name: github.com/gin-contrib/sse
+  version: 54d8467d122d380a14768b6b4e5cd7ca4755938f
+- name: github.com/gin-gonic/gin
+  version: d459835d2b077e44f7c9b453505ee29881d5d12d
+  subpackages:
+  - binding
+  - render
+- name: github.com/golang/protobuf
+  version: b285ee9cfc6c881bb20c0d8dc73370ea9b9ec90f
+  subpackages:
+  - proto
+- name: github.com/google/go-querystring
+  version: c8c88dbee036db4e4808d1f2ec8c2e15e11c3f80
+  subpackages:
+  - query
+- name: github.com/levigross/grequests
+  version: 3f92c0acb6cd7f2b11aa81f82a33783249fc1bcd
+- name: github.com/mattn/go-isatty
+  version: 1311e847b0cb909da63b5fecfb5370aa66236465
+- name: github.com/tidwall/gjson
+  version: 081192fa2e471ddff3ec98a3cc04fecfd031ed57
+- name: github.com/tidwall/match
+  version: 33827db735fff6510490d69a8622612558a557ed
+- name: github.com/ugorji/go
+  version: a2c9fa250719622a16ea652598779a08d5a377f8
+  subpackages:
+  - codec
+- name: golang.org/x/net
+  version: 60506f45cf65977eb3a9c6e30f995f54a721c271
+  subpackages:
+  - publicsuffix
+- name: golang.org/x/sys
+  version: 4c4f7f33c9ed00de01c4c741d2177abfcfe19307
+  subpackages:
+  - unix
+- name: gopkg.in/go-playground/validator.v8
+  version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
+- name: gopkg.in/yaml.v2
+  version: 51d6538a90f86fe93ac480b35f37b2be17fef232
+testImports: []

@@ -1,0 +1,61 @@
+version: '3.4'
+
+services:  
+  server:
+    image: sdpequinor/release-aware-api:latest
+    restart: unless-stopped
+    command: /scripts/run-local-server.sh
+    build:
+      context:  ./server/
+      dockerfile: Dockerfile
+    env_file:
+     - server.env  
+    ports:
+      - 8080:8080
+    volumes:
+      - ./server/src:/go/src/app/src
+    environment:
+      REPOSITORIES: |
+        golang/go,
+        nodejs/node,
+        Leaflet/Leaflet,
+        containous/traefik,
+        grafana/grafana,
+        axios/axios,
+        vuejs/vue,
+        d3/d3,
+        torvalds/linux,
+        Microsoft/vscode,
+        git/git,
+        tmux/tmux, 
+        jenkinsci/jenkins, 
+        weaveworks/flux, 
+        facebook/create-react-app, 
+        facebook/react, 
+        pallets/flask, 
+        styled-components/styled-components, 
+        graphql/graphql-js, 
+        ReactTraining/react-router, 
+        docker/docker-ce, 
+        docker/compose, 
+        Azure/AKS, 
+        Azure/aks-engine, 
+        derailed/k9s, 
+        kubernetes/kubernetes, 
+        graphql-python/flask-graphql, 
+        graphql-python/graphene, 
+        behave/behave,
+        sqlalchemy/sqlalchemy
+  client:
+    image: sdpequinor/release-aware-web:latest
+    restart: unless-stopped
+    build:
+      context:  ./client/
+      dockerfile: Dockerfile
+    ports:
+      - 80:3001
+    volumes:
+      - ./client/src:/code/src
+    environment:
+      REFRESH_INTERVAL: '10000'
+      FLASK_DEBUG: 'True'
