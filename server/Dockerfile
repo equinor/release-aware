@@ -1,9 +1,5 @@
 FROM golang:1.12.5
 
-# ENV http_proxy http://www-proxy.statoil.no:80/
-# ENV https_proxy http://www-proxy.statoil.no:80/
-# ENV GOPROXY http://www-proxy.statoil.no:80/
-
 # install required debian packages
 # add any package that is required after `build-essential`, end the line with \
 RUN apt-get update && apt-get install -y \

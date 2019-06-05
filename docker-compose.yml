@@ -45,7 +45,14 @@ services:
         graphql-python/flask-graphql, 
         graphql-python/graphene, 
         behave/behave,
-        sqlalchemy/sqlalchemy
+        sqlalchemy/sqlalchemy,
+        rust-lang/rust,
+        elastic/elasticsearch,
+        elastic/kibana,
+        Microsoft/TypeScript,
+        Homebrew/homebrew-cask,
+        gatsbyjs/gatsby,
+        python/cpython
   client:
     image: sdpequinor/release-aware-web:latest
     restart: unless-stopped
