@@ -58,6 +58,12 @@ const Title = styled.span`
   margin-right: auto!important; 
 `;
 
+const TagName = styled.span`
+  font-size: 0.7em;
+  font-weight: ${props => props.isLatest ? 'bold' : 'normal' };  
+  text-decoration:  ${props => props.isLatest ? 'underline' : 'none' };
+ `;
+
 
 function EventContainer({events}) {
     return events.length === 0 ? (
@@ -72,7 +78,9 @@ function EventContainer({events}) {
                     severity={event.severity}
                     onClick={() => window.open(event.html_url, "_blank")}>
                     <Header severity={event.severity}>
-                        <Title><strong>{event.repository_name}</strong> - <small>{event.tag_name}</small></Title>
+                        <Title>
+                            <strong>{event.repository_name}</strong> - <TagName isLatest={event.type === 'Latest release'}>{event.tag_name}</TagName>
+                        </Title>
                         <small>{event.days} days</small>
                     </Header>
                 </Alert>

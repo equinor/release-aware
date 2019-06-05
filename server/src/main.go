@@ -68,7 +68,7 @@ func parseRelease(resp string, prefix string) Release {
 	}
 	release.Type = releaseType
 	release.HtmlUrl = gjson.Get(resp, prefix+".url").String()
-	release.PublishedAt = gjson.Get(resp, prefix+".createdAt").Time()
+	release.PublishedAt = gjson.Get(resp, prefix+".publishedAt").Time()
 	release.TagName = gjson.Get(resp, prefix+".tagName").String()
 	return release
 }
@@ -102,6 +102,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 		     edges {
 		  		node {
 			  	  createdAt
+                  publishedAt
                   url
 	    		  isDraft
   		          isPrerelease
