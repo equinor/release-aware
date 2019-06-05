@@ -1,41 +1,42 @@
 package main
 
 import (
+	"errors"
 	// "fmt"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
-	"sort"
-    "errors"
 
-	"github.com/tidwall/gjson"
 	"github.com/gin-gonic/gin"
 	"github.com/levigross/grequests"
+	"github.com/tidwall/gjson"
 )
 
 type Release struct {
-	TagName string `json:"tag_name"`
-	PublishedAt string `json:"published_at"`
-	CreatedAt string  `json:"created_at"`
-	Severity string `json:"severity"`
+	TagName        string `json:"tag_name"`
+	PublishedAt    string `json:"published_at"`
+	CreatedAt      string `json:"created_at"`
+	Severity       string `json:"severity"`
 	RepositoryName string `json:"repository_name"`
-	HtmlUrl string `json:"html_url"`
-	Days int `json:"days"`
-	Type string `json:"type"`
-	date time.Time
+	HtmlUrl        string `json:"html_url"`
+	Days           int    `json:"days"`
+	Type           string `json:"type"`
+	date           time.Time
 }
 
 // DateSorter sorts releases by date.
 type DateSorter []Release
-func (a DateSorter) Len() int { 
-	return len(a) 
+
+func (a DateSorter) Len() int {
+	return len(a)
 }
-func (a DateSorter) Swap(i, j int) { 
-	a[i], a[j] = a[j], a[i] 
+func (a DateSorter) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
 }
-func (a DateSorter) Less(i, j int) bool { 
-	return a[i].date.After(a[j].date) 
+func (a DateSorter) Less(i, j int) bool {
+	return a[i].date.After(a[j].date)
 }
 
 func getSeverity(days int) string {
@@ -44,46 +45,46 @@ func getSeverity(days int) string {
 	} else if days < 7 {
 		return "warning"
 	} else {
-		return "white" 
+		return "white"
 	}
 }
 
 func getGithubRepositories() []string {
-	repositories := strings.ReplaceAll(os.Getenv("REPOSITORIES"),  "\n", "")
+	repositories := strings.ReplaceAll(os.Getenv("REPOSITORIES"), "\n", "")
 	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
 func getGithubToken() string {
-	return "token " + os.Getenv("GITHUB_TOKEN")	
-} 
+	return "token " + os.Getenv("GITHUB_TOKEN")
+}
 
 func parseRelease(resp string, repositoryName string, prefix string) Release {
 	var release Release
-	isDraft := gjson.Get(resp, prefix + ".isDraft")
-	isPrerelease := gjson.Get(resp, prefix + ".isPrerelease")
+	isDraft := gjson.Get(resp, prefix+".isDraft")
+	isPrerelease := gjson.Get(resp, prefix+".isPrerelease")
 	releaseType := "Latest release"
 	if isPrerelease.Bool() {
 		releaseType = "Pre-release"
-	} 
+	}
 	if isDraft.Bool() {
 		releaseType = "Draft"
-	}		
+	}
 	release.Type = releaseType
-	release.HtmlUrl = gjson.Get(resp, prefix + ".url").String()
-	release.PublishedAt = gjson.Get(resp, prefix + ".createdAt").String()
-	release.TagName = gjson.Get(resp, prefix + ".tagName").String()
+	release.HtmlUrl = gjson.Get(resp, prefix+".url").String()
+	release.PublishedAt = gjson.Get(resp, prefix+".createdAt").String()
+	release.TagName = gjson.Get(resp, prefix+".tagName").String()
 	return release
 }
 
 func parseTag(resp string, repositoryName string, prefix string) Release {
 	var release Release
-	tagName := gjson.Get(resp, prefix + ".name")
-	pushedDate := gjson.Get(resp, prefix + ".target.pushedDate")
+	tagName := gjson.Get(resp, prefix+".name")
+	pushedDate := gjson.Get(resp, prefix+".target.pushedDate")
 	if !pushedDate.Exists() {
-		pushedDate = gjson.Get(resp, prefix +  ".target.tagger.date")
-	} 
+		pushedDate = gjson.Get(resp, prefix+".target.tagger.date")
+	}
 	release.PublishedAt = pushedDate.String()
-	release.TagName = tagName.String()				
+	release.TagName = tagName.String()
 	release.HtmlUrl = "https://github.com/" + repositoryName + "/releases/tag/" + tagName.String()
 	release.Type = "Tag"
 	return release
@@ -92,7 +93,7 @@ func parseTag(resp string, repositoryName string, prefix string) Release {
 func getGithubRelease(repositoryName string) (Release, error) {
 	splitted := strings.Split(repositoryName, "/")
 	query := `{
-		repository(owner: "` + splitted[0] + `", name: "` + splitted[1]+ `") {
+		repository(owner: "` + splitted[0] + `", name: "` + splitted[1] + `") {
 		  releases (last: 1) {
 		    edges {
 		  		node {
@@ -105,7 +106,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 		    }
 		  }
 		}
-		repository(owner: "` + splitted[0] + `", name: "` + splitted[1]+ `") {
+		repository(owner: "` + splitted[0] + `", name: "` + splitted[1] + `") {
 			refs(refPrefix: "refs/tags/", last: 1, orderBy: {field: TAG_COMMIT_DATE, direction: ASC}) {
 			edges {
 				node {
@@ -129,8 +130,8 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	url := "https://api.github.com/graphql"
 	requestOptions := &grequests.RequestOptions{
 		Headers: map[string]string{"Authorization": getGithubToken()},
-		JSON: map[string]string{"query": query},
-	}			
+		JSON:    map[string]string{"query": query},
+	}
 	resp, err := grequests.Post(url, requestOptions)
 	if err != nil {
 		return Release{}, errors.New(err.Error())
@@ -141,7 +142,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 
 	prefix_release := "data.repository.releases.edges.0.node"
 	prefix_tag := "data.repository.refs.edges.0.node"
-	
+
 	isRelease := gjson.Get(resp.String(), prefix_release).Exists()
 	isTag := gjson.Get(resp.String(), prefix_tag).Exists()
 
@@ -149,13 +150,13 @@ func getGithubRelease(repositoryName string) (Release, error) {
 		return parseRelease(resp.String(), repositoryName, prefix_release), nil
 	} else if isTag {
 		return parseTag(resp.String(), repositoryName, prefix_tag), nil
-	}	
+	}
 	return Release{}, errors.New("Could not find any release for " + repositoryName)
 }
 
 func main() {
 	r := gin.Default()
-	
+
 	r.GET("/api/releases", func(c *gin.Context) {
 		releases := []Release{}
 
@@ -180,15 +181,15 @@ func main() {
 			days := int(t2.Sub(date).Hours() / 24)
 
 			// date is used when sorting
-			release.date = date 
+			release.date = date
 			release.Days = days
 			release.Severity = getSeverity(days)
-			release.RepositoryName = repositoryName			
+			release.RepositoryName = repositoryName
 			releases = append(releases, release)
 		}
-		
+
 		sort.Sort(DateSorter(releases))
-		
+
 		c.JSON(http.StatusOK, releases)
 	})
 
