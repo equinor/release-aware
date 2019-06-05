@@ -14,7 +14,7 @@ In order to run the commands described below, you need:
 ```
 git clone ...
 cp server.env.template server.env
-# populate variables in .env as described below
+# populate variables in server.env as described below
 docker-compose build
 docker-compose up
 ```
