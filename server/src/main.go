@@ -95,15 +95,15 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	query := `{
 		repository(owner: "` + splitted[0] + `", name: "` + splitted[1] + `") {
 		  releases (last: 1) {
-		    edges {
+		     edges {
 		  		node {
 			  	  createdAt
-   	 		  	url
-	    			isDraft
-  		      isPrerelease
-        	  tagName
-			    }
-		    }
+                  url
+	    		  isDraft
+  		          isPrerelease
+                  tagName
+                }
+		     }
 		  }
 		}
 		repository(owner: "` + splitted[0] + `", name: "` + splitted[1] + `") {
@@ -120,7 +120,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 						tagger {
 						date
 						}
-					}
+                     }
 					}
 				}
 				}

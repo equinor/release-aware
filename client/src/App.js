@@ -4,10 +4,7 @@ import ReleasesContainer from './ReleasesContainer';
 import Spinner from './Spinner';
 
 function getMostSevereAlert(events) {
-  let mostSever = 'ok';
-  if (events.some(event => event.severity === 'none')) {
-    mostSever = 'none';
-  }
+  let mostSever = '';
   if (events.some(event => event.severity === 'warning')) {
     mostSever = 'warning';
   }
@@ -48,17 +45,11 @@ class App extends React.Component {
         result => {
           let background;
           switch (getMostSevereAlert(result)) {
-            case 'none':
-              background = '#747474';
-              break;
-            case 'ok':
-              background = '#86C232';
-              break;
             case 'warning':
-              background = '#FF652F';
+              background = '#ffeeba';
               break;
             case 'critical':
-              background = '#f8d7da';
+              background = '#E0EBF5';
               break;
             default:
               background = 'white';
