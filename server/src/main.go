@@ -98,7 +98,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	splitted := strings.Split(repositoryName, "/")
 	query := `{
 		repository(owner: "` + splitted[0] + `", name: "` + splitted[1] + `") {
-		  releases (last: 1) {
+		  releases (last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {
 		     edges {
 		  		node {
 			  	  createdAt
