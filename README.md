@@ -9,7 +9,7 @@ In order to run the commands described below, you need:
 - [Docker Compose](https://docs.docker.com/compose/)
 - make (`sudo apt-get install make` on Ubuntu)
 
-## Initial setup
+## Usage
 
 ```
 git clone ...

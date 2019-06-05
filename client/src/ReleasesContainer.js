@@ -12,7 +12,7 @@ function getBackgroundColor(severity) {
         case 'warning':
             return '#fff3cd';
         case 'critical':
-            return '#E0EBF5';
+            return '#f8d7da';
         default:
             return '#fefefe';
     }
@@ -23,7 +23,7 @@ function getBorderColor(severity) {
         case 'warning':
             return '#ffeeba';
         case 'critical':
-            return '#cddfef';
+            return '#f5c6cb';
         default:
             return '#fdfdfe';
     }

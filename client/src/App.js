@@ -49,7 +49,7 @@ class App extends React.Component {
               background = '#ffeeba';
               break;
             case 'critical':
-              background = '#E0EBF5';
+              background = '#f8d7da';
               break;
             default:
               background = 'white';
