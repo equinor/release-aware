@@ -27,7 +27,7 @@ services:
         torvalds/linux,
         Microsoft/vscode,
         git/git,
-        tmux/tmux, 
+        tmux/tmux,
         jenkinsci/jenkins, 
         weaveworks/flux, 
         facebook/create-react-app, 
@@ -52,7 +52,10 @@ services:
         Microsoft/TypeScript,
         Homebrew/homebrew-cask,
         gatsbyjs/gatsby,
-        python/cpython
+        python/cpython,
+        facebook/jest,
+        eslint/eslint,
+        webpack/webpack
   client:
     image: sdpequinor/release-aware-web:latest
     restart: unless-stopped

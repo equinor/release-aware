@@ -14,6 +14,7 @@ import (
 )
 
 type Release struct {
+	Name           string    `json:"name"`
 	TagName        string    `json:"tag_name"`
 	PublishedAt    time.Time `json:"published_at"`
 	Severity       string    `json:"severity"`
@@ -70,6 +71,7 @@ func parseRelease(resp string, prefix string) Release {
 	release.HtmlUrl = gjson.Get(resp, prefix+".url").String()
 	release.PublishedAt = gjson.Get(resp, prefix+".publishedAt").Time()
 	release.TagName = gjson.Get(resp, prefix+".tagName").String()
+	release.Name = gjson.Get(resp, prefix+".name").String()
 	return release
 }
 
@@ -107,6 +109,7 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	    		  isDraft
   		          isPrerelease
                   tagName
+                  name
                 }
 		     }
 		  }

@@ -4,14 +4,14 @@ import ReleasesContainer from './ReleasesContainer';
 import Spinner from './Spinner';
 
 function getMostSevereAlert(events) {
-  let mostSever = '';
-  if (events.some(event => event.severity === 'warning')) {
-    mostSever = 'warning';
-  }
-  if (events.some(event => event.severity === 'critical')) {
-    mostSever = 'critical';
-  }
-  return mostSever;
+    let mostSever = '';
+    if (events.some(event => event.severity === 'warning')) {
+        mostSever = 'warning';
+    }
+    if (events.some(event => event.severity === 'critical')) {
+        mostSever = 'critical';
+    }
+    return mostSever;
 }
 
 const Header = styled.h3`
@@ -29,74 +29,74 @@ const AppContainer = styled.div`
 `;
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      events: []
-    };
-  }
-
-  refetchData() {
-    fetch('/api/releases')
-      .then(res => res.json())
-      .then(
-        result => {
-          let background;
-          switch (getMostSevereAlert(result)) {
-            case 'warning':
-              background = '#ffeeba';
-              break;
-            case 'critical':
-              background = '#f8d7da';
-              break;
-            default:
-              background = 'white';
-          }
-          this.setState({
-            isLoaded: true,
-            events: result,
-            backgroundColor: background,
+    constructor(props) {
+        super(props);
+        this.state = {
             error: null,
-          });
-        },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
-        error => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
-      );
-  }
-
-  componentDidMount() {
-    this.refetchData();
-    this.interval = setInterval(() => this.refetchData(), 100000);
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval);
-  }
-
-  render() {
-    const { error, isLoaded, events, backgroundColor } = this.state;
-    if (error) {
-      return <div>Error: {error.message}</div>;
-    } else if (!isLoaded) {
-      return <Spinner isLoading={true} />;
-    } else {
-      return (
-        <AppContainer backgroundColor={backgroundColor}>
-          <Header>Releases</Header>
-          <ReleasesContainer events={events} />
-        </AppContainer>
-      );
+            isLoaded: false,
+            releases: []
+        };
     }
-  }
+
+    refetchData() {
+        fetch('/api/releases')
+            .then(res => res.json())
+            .then(
+                result => {
+                    let background;
+                    switch (getMostSevereAlert(result)) {
+                        case 'warning':
+                            background = '#ffeeba';
+                            break;
+                        case 'critical':
+                            background = '#f8d7da';
+                            break;
+                        default:
+                            background = 'white';
+                    }
+                    this.setState({
+                        isLoaded: true,
+                        releases: result,
+                        backgroundColor: background,
+                        error: null,
+                    });
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                error => {
+                    this.setState({
+                        isLoaded: true,
+                        error
+                    });
+                }
+            );
+    }
+
+    componentDidMount() {
+        this.refetchData();
+        this.interval = setInterval(() => this.refetchData(), 100000);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
+    }
+
+    render() {
+        const {error, isLoaded, releases, backgroundColor} = this.state;
+        if (error) {
+            return <div>Error: {error.message}</div>;
+        } else if (!isLoaded) {
+            return <Spinner isLoading={true}/>;
+        } else {
+            return (
+                <AppContainer backgroundColor={backgroundColor}>
+                    <Header>Releases</Header>
+                    <ReleasesContainer releases={releases}/>
+                </AppContainer>
+            );
+        }
+    }
 }
 
 export default App;
