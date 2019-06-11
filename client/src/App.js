@@ -2,17 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import ReleasesContainer from './ReleasesContainer';
 import Spinner from './Spinner';
-
-function getMostSevereAlert(events) {
-    let mostSever = '';
-    if (events.some(event => event.severity === 'warning')) {
-        mostSever = 'warning';
-    }
-    if (events.some(event => event.severity === 'critical')) {
-        mostSever = 'critical';
-    }
-    return mostSever;
-}
+import axios from 'axios';
 
 const Header = styled.h3`
   margin: 0px;
@@ -20,13 +10,36 @@ const Header = styled.h3`
 `;
 
 const AppContainer = styled.div`
-  background: ${props => props.backgroundColor};
+  background: white;
   margin: 0px;  
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-bottom: 20px;
 `;
+
+const P = styled.p`
+  margin: 0px;
+`;
+
+function CouldNotFetch({lastSuccessfulFetch}) {
+    let lastFetch;
+    if (lastSuccessfulFetch) {
+        const temp_string = lastSuccessfulFetch.toString();
+        lastFetch = temp_string
+            .split(' ')
+            .splice(0, 5)
+            .join(' ');
+    } else {
+        lastFetch = 'none';
+    }
+    return (
+        <>
+            <P>Could not fetch data</P>
+            <P>Last updated; {lastFetch}</P>
+        </>
+    );
+}
 
 class App extends React.Component {
     constructor(props) {
@@ -39,38 +52,25 @@ class App extends React.Component {
     }
 
     refetchData() {
-        fetch('/api/releases')
-            .then(res => res.json())
-            .then(
-                result => {
-                    let background;
-                    switch (getMostSevereAlert(result)) {
-                        case 'warning':
-                            background = '#ffeeba';
-                            break;
-                        case 'critical':
-                            background = '#f8d7da';
-                            break;
-                        default:
-                            background = 'white';
-                    }
-                    this.setState({
-                        isLoaded: true,
-                        releases: result,
-                        backgroundColor: background,
-                        error: null,
-                    });
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                error => {
-                    this.setState({
-                        isLoaded: true,
-                        error
-                    });
-                }
-            );
+        axios
+            .get('/api/releases')
+            .then(response => {
+                this.setState({
+                    isLoaded: true,
+                    releases: response.data,
+                    error: null,
+                });
+            })
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            .catch(error => {
+                this.setState({
+                    isLoaded: true,
+                    error,
+                    lastSuccessfulFetch: new Date(),
+                });
+            });
     }
 
     componentDidMount() {
@@ -83,7 +83,14 @@ class App extends React.Component {
     }
 
     render() {
-        const {error, isLoaded, releases, backgroundColor} = this.state;
+        const {
+            error,
+            isLoaded,
+            releases,
+            backgroundColor,
+            lastSuccessfulFetch
+        } = this.state;
+
         if (error) {
             return <div>Error: {error.message}</div>;
         } else if (!isLoaded) {
@@ -92,6 +99,7 @@ class App extends React.Component {
             return (
                 <AppContainer backgroundColor={backgroundColor}>
                     <Header>Releases</Header>
+                    {error && <CouldNotFetch lastSuccessfulFetch={lastSuccessfulFetch}/>}
                     <ReleasesContainer releases={releases}/>
                 </AppContainer>
             );

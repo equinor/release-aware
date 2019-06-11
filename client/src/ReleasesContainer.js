@@ -44,7 +44,7 @@ const Alert = styled.div`
   background: ${props => getBackgroundColor(props.severity)};  
   margin-bottom: 10px;
   margin-left: 10px;
-  cursor: pointer
+  cursor: pointer;
   
   &:hover {
     color: #383d41;
