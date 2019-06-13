@@ -10,9 +10,9 @@ const NoReleasesContainer = styled.div`
 function getBackgroundColor(severity) {
     switch (severity) {
         case 'warning':
-            return '#fff3cd';
+            return '#8e98d5';
         case 'critical':
-            return '#f8d7da';
+            return '#9df79a';
         default:
             return '#fefefe';
     }
@@ -41,11 +41,11 @@ const Alert = styled.div`
   backdrop-filter: blur(10px);
   border-radius: .25rem;
   border-color: ${props => getBorderColor(props.severity)};
-  background: ${props => getBackgroundColor(props.severity)};  
+  background: ${props => getBackgroundColor(props.severity)};
   margin-bottom: 10px;
   margin-left: 10px;
   cursor: pointer;
-  
+
   &:hover {
     color: #383d41;
     background-color: #e2e3e5;
@@ -62,12 +62,12 @@ const Header = styled.div`
 `;
 
 const Title = styled.span`
-  margin-right: auto!important; 
+  margin-right: auto!important;
 `;
 
 const TagName = styled.span`
   font-size: 0.7em;
-  font-weight: ${props => props.isLatest ? 'bold' : 'normal'};  
+  font-weight: ${props => props.isLatest ? 'bold' : 'normal'};
   text-decoration:  ${props => props.isLatest ? 'underline' : 'none'};
  `;
 

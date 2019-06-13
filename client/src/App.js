@@ -10,8 +10,8 @@ const Header = styled.h3`
 `;
 
 const AppContainer = styled.div`
-  background: white;
-  margin: 0px;  
+  background-color: #59585e;
+  margin: 0px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,7 +87,6 @@ class App extends React.Component {
             error,
             isLoaded,
             releases,
-            backgroundColor,
             lastSuccessfulFetch
         } = this.state;
 
@@ -97,7 +96,7 @@ class App extends React.Component {
             return <Spinner isLoading={true}/>;
         } else {
             return (
-                <AppContainer backgroundColor={backgroundColor}>
+                <AppContainer>
                     <Header>Releases</Header>
                     {error && <CouldNotFetch lastSuccessfulFetch={lastSuccessfulFetch}/>}
                     <ReleasesContainer releases={releases}/>
