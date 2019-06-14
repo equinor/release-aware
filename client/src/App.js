@@ -7,10 +7,10 @@ import axios from 'axios';
 const Header = styled.h3`
   margin: 0px;
   padding: 10px;
+  color: white;
 `;
 
-const AppContainer = styled.div`
-  background-color: #59585e;
+const AppContainer = styled.div`  
   margin: 0px;
   display: flex;
   flex-direction: column;
