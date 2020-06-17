@@ -56,6 +56,11 @@ services:
         facebook/jest,
         eslint/eslint,
         webpack/webpack
+      HELM_REPOS: |
+        gitlab/gitlab,
+        stable/grafana,
+        stable/oauth-proxy,
+        stable/sealed-secrets
   client:
     image: sdpequinor/release-aware-web:1.7
     restart: unless-stopped

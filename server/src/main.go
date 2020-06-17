@@ -173,6 +173,35 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	return Release{}, errors.New("Could not find any release for " + repositoryName)
 }
 
+func getHelmhubRepositories() []string {
+		repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS"), "\n", "")
+		return repositories
+}
+
+func getHelmhubRelease(repositoryName string) (Release, error) {
+	//	curl https://hub.helm.sh/api/chartsvc/v1/charts/stable/sealed-secrets | jq '.data.relationships.latestChartVersion.data.version'
+	
+	baseUrl := "https://hub.helm.sh/api/chartsvc/v1/charts/"
+	url := (baseUrl + repositoryName)
+
+	resp, err := grequests.Get(url)
+	if err != nil {
+		return HelmRelease{}, errors.New(err.Error())
+	}
+	if !resp.Ok {
+		return HelmRelease{}, errors.New(string(resp.Bytes()))
+	}
+}
+
+func parseHelmhubRelease (resp string) HelmRelease {
+	var helmRelease HelmRelease
+
+	helmRelease.Name = gjson.Get(".data.attributes.repo.name"+"/"+".data.attributes.name").String()
+	helmRelease.Id = gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
+	helmRelease.HtmlUrl = gjson.Get(resp, "hub.helm.sh/"+".data.relationships.latestChartVersion.links.self").String()
+	helmRelease.PublishedAt = gjson.Get(resp, "data.relationships.latestChartVersion.data.created").Time()
+}
+
 func main() {
 	r := gin.Default()
 
@@ -188,6 +217,30 @@ func main() {
 				return
 			}
 
+			days := int(time.Now().Sub(release.PublishedAt).Hours() / 24)
+			release.Days = days
+			release.Severity = getSeverity(days)
+			release.RepositoryName = repositoryName
+			releases = append(releases, release)
+		}
+
+		sort.Sort(DateSorter(releases))
+
+		c.JSON(http.StatusOK, releases)
+	})
+
+	r.GET("api/helmreleases", func(c *gin.Context) {
+		var helmReleases []HelmRelease
+
+		for _, repositoryName := range getHelmhubRepositories() {
+			release, err := getHelmhubRelease(repositoryName)
+			if err != nil {
+				c.JSON(500, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			
 			days := int(time.Now().Sub(release.PublishedAt).Hours() / 24)
 			release.Days = days
 			release.Severity = getSeverity(days)
