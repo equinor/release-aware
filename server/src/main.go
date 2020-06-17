@@ -24,6 +24,16 @@ type Release struct {
 	Type           string    `json:"type"`
 }
 
+type HelmRelease struct {
+	Name           string    `json:"name"`
+	Id       	   string    `json:"id"`
+	PublishedAt    time.Time `json:"published_at"`
+	Severity       string    `json:"severity"`
+	RepositoryName string    `json:"repository_name"`
+	HtmlUrl        string    `json:"html_url"`
+	Days           int       `json:"days"`
+}
+
 // DateSorter sorts releases by date.
 type DateSorter []Release
 
@@ -175,31 +185,37 @@ func getGithubRelease(repositoryName string) (Release, error) {
 
 func getHelmhubRepositories() []string {
 		repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS"), "\n", "")
-		return repositories
+		return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
-func getHelmhubRelease(repositoryName string) (Release, error) {
+func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 	//	curl https://hub.helm.sh/api/chartsvc/v1/charts/stable/sealed-secrets | jq '.data.relationships.latestChartVersion.data.version'
 	
 	baseUrl := "https://hub.helm.sh/api/chartsvc/v1/charts/"
 	url := (baseUrl + repositoryName)
 
-	resp, err := grequests.Get(url)
+	requestOptions := &grequests.RequestOptions{
+	}
+
+	resp, err := grequests.Get(url, requestOptions)
 	if err != nil {
 		return HelmRelease{}, errors.New(err.Error())
 	}
 	if !resp.Ok {
 		return HelmRelease{}, errors.New(string(resp.Bytes()))
 	}
+	return HelmRelease{}, errors.New("Could not find any helmrelease for " + repositoryName)
 }
 
 func parseHelmhubRelease (resp string) HelmRelease {
 	var helmRelease HelmRelease
 
-	helmRelease.Name = gjson.Get(".data.attributes.repo.name"+"/"+".data.attributes.name").String()
+	helmRelease.Name = gjson.Get(resp, ".data.attributes.repo.name"+"/"+".data.attributes.name").String()
 	helmRelease.Id = gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
 	helmRelease.HtmlUrl = gjson.Get(resp, "hub.helm.sh/"+".data.relationships.latestChartVersion.links.self").String()
 	helmRelease.PublishedAt = gjson.Get(resp, "data.relationships.latestChartVersion.data.created").Time()
+
+	return helmRelease
 }
 
 func main() {
@@ -240,17 +256,17 @@ func main() {
 				})
 				return
 			}
-			
+
 			days := int(time.Now().Sub(release.PublishedAt).Hours() / 24)
 			release.Days = days
 			release.Severity = getSeverity(days)
 			release.RepositoryName = repositoryName
-			releases = append(releases, release)
+			helmReleases = append(helmReleases, release)
 		}
 
-		sort.Sort(DateSorter(releases))
+//		sort.Sort(DateSorter(helmReleases))
 
-		c.JSON(http.StatusOK, releases)
+		c.JSON(http.StatusOK, helmReleases)
 	})
 
 	r.Run() // listen and serve on 0.0.0.0:8080 by default
