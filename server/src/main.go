@@ -204,15 +204,19 @@ func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 	if !resp.Ok {
 		return HelmRelease{}, errors.New(string(resp.Bytes()))
 	}
-	return HelmRelease{}, errors.New("Could not find any helmrelease for " + repositoryName)
+	release := parseHelmhubRelease(resp.String())
+
+	return release, errors.New("Could not find any helmrelease for " + repositoryName)
 }
 
 func parseHelmhubRelease (resp string) HelmRelease {
 	var helmRelease HelmRelease
 
-	helmRelease.Name = gjson.Get(resp, ".data.attributes.repo.name"+"/"+".data.attributes.name").String()
+	repoName := gjson.Get(resp, ".data.attributes.repo.name").String()
+	name := gjson.Get(resp, ".data.attributes.name").String()
+	helmRelease.Name = repoName + "/" + name
 	helmRelease.Id = gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
-	helmRelease.HtmlUrl = gjson.Get(resp, "hub.helm.sh/"+".data.relationships.latestChartVersion.links.self").String()
+	helmRelease.HtmlUrl = "hub.helm.sh/" + gjson.Get(resp, ".data.relationships.latestChartVersion.links.self").String()
 	helmRelease.PublishedAt = gjson.Get(resp, "data.relationships.latestChartVersion.data.created").Time()
 
 	return helmRelease
