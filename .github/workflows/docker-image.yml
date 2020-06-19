@@ -1,0 +1,27 @@
+name: 'Release-aware server Docker image create & push'
+
+on:
+  push:
+    branches: [ master, helm-charts ]
+    paths:
+    - 'server/*'
+    - '.github/workflows/*'
+  pull_request:
+    branches: [ master ]
+    paths:
+    - 'server/*'
+    - '.github/workflows/*'
+jobs:
+
+  build-server-image:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: |
+        docker build . --file ./server/Dockerfile --tag sdpequinor/release-aware-api:latest
+        echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        docker push sdpequinor/release-aware-api:latest
+        docker logout
