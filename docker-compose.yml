@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   server:
-    image: sdpequinor/release-aware-api:1.7
+    image: sdpequinor/release-aware-api:latest
     restart: unless-stopped
     command: /scripts/run-local-server.sh
     build:
@@ -56,11 +56,6 @@ services:
         facebook/jest,
         eslint/eslint,
         webpack/webpack
-      HELM_REPOS: |
-        gitlab/gitlab,
-        stable/grafana,
-        stable/oauth-proxy,
-        stable/sealed-secrets
   client:
     image: sdpequinor/release-aware-web:1.7
     restart: unless-stopped
@@ -68,7 +63,7 @@ services:
       context:  ./client/
       dockerfile: Dockerfile
     ports:
-      - 3001:3001
+      - 80:3001
     volumes:
       - ./client/src:/code/src
     environment:
