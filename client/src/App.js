@@ -53,14 +53,17 @@ class App extends React.Component {
 
     refetchData() {
         axios
-            .get('/api/releases')
-            .then(response => {
-                this.setState({
-                    isLoaded: true,
-                    releases: response.data,
-                    error: null,
-                });
-            })
+            .all([
+                axios.get("/api/releases"),
+                axios.get("/api/helmreleases")
+            ])
+          .then(axios.spread((...responses) => {
+            this.setState({ 
+                isLoaded: true,
+                releases: responses[0].data.concat(responses[1].data),
+                error: null,
+             })
+          }))
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
             // exceptions from actual bugs in components.

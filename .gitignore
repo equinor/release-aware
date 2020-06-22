@@ -1,3 +1,4 @@
 vendor/
 server/vendor/
 server.env
+.vscode
