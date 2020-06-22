@@ -73,8 +73,31 @@ class App extends React.Component {
             });
     }
 
+    refetchHelmData() {
+        axios
+            .get('/api/helmreleases')
+            .then(response => {
+                this.setState({
+                    isLoaded: true,
+                    releases: response.data,
+                    error: null,
+                });
+            })
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            .catch(error => {
+                this.setState({
+                    isLoaded: true,
+                    error,
+                    lastSuccessfulFetch: new Date(),
+                });
+            });
+    }
+
     componentDidMount() {
         this.refetchData();
+        this.refetchHelmData();
         this.interval = setInterval(() => this.refetchData(), 100000);
     }
 

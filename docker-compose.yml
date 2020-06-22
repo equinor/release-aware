@@ -56,6 +56,11 @@ services:
         facebook/jest,
         eslint/eslint,
         webpack/webpack
+      HELM_REPOS: |
+        gitlab/gitlab,
+        fluxcd/flux,
+        jetstack/cert-manager,
+        stable/oauth2-proxy
   client:
     image: sdpequinor/release-aware-web:1.7
     restart: unless-stopped
@@ -63,7 +68,7 @@ services:
       context:  ./client/
       dockerfile: Dockerfile
     ports:
-      - 80:3001
+      - 3001:3001
     volumes:
       - ./client/src:/code/src
     environment:

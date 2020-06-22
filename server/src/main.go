@@ -26,12 +26,13 @@ type Release struct {
 
 type HelmRelease struct {
 	Name           string    `json:"name"`
-	Id       	   string    `json:"id"`
+	TagName        string    `json:"tag_name"`
 	PublishedAt    time.Time `json:"published_at"`
 	Severity       string    `json:"severity"`
 	RepositoryName string    `json:"repository_name"`
 	HtmlUrl        string    `json:"html_url"`
 	Days           int       `json:"days"`
+	Type           string    `json:"type"`
 }
 
 // DateSorter sorts releases by date.
@@ -44,6 +45,19 @@ func (a DateSorter) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 func (a DateSorter) Less(i, j int) bool {
+	return a[i].PublishedAt.After(a[j].PublishedAt)
+}
+
+// Don't know how to overload in Go, so duplicating..
+type HelmDateSorter []HelmRelease
+
+func (a HelmDateSorter) Len() int {
+	return len(a)
+}
+func (a HelmDateSorter) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+func (a HelmDateSorter) Less(i, j int) bool {
 	return a[i].PublishedAt.After(a[j].PublishedAt)
 }
 
@@ -184,18 +198,17 @@ func getGithubRelease(repositoryName string) (Release, error) {
 }
 
 func getHelmhubRepositories() []string {
-		repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS"), "\n", "")
-		return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
+	repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS"), "\n", "")
+	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
 func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 	//	curl https://hub.helm.sh/api/chartsvc/v1/charts/stable/sealed-secrets | jq '.data.relationships.latestChartVersion.data.version'
-	
+
 	baseUrl := "https://hub.helm.sh/api/chartsvc/v1/charts/"
 	url := (baseUrl + repositoryName)
 
-	requestOptions := &grequests.RequestOptions{
-	}
+	requestOptions := &grequests.RequestOptions{}
 
 	resp, err := grequests.Get(url, requestOptions)
 	if err != nil {
@@ -205,7 +218,6 @@ func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 		return HelmRelease{}, errors.New(string(resp.Bytes()))
 	}
 
-
 	release := parseHelmhubRelease(resp.String())
 	if !release.PublishedAt.IsZero() {
 		return release, nil
@@ -214,14 +226,15 @@ func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 	return HelmRelease{}, errors.New("Could not find any helmrelease for " + repositoryName)
 }
 
-func parseHelmhubRelease (resp string) HelmRelease {
+func parseHelmhubRelease(resp string) HelmRelease {
 	var helmRelease HelmRelease
 
 	helmRelease.Name = gjson.Get(resp, "data.attributes.name").String()
-	helmRelease.Id = gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
-	helmRelease.HtmlUrl = "hub.helm.sh/" + gjson.Get(resp, "data.relationships.latestChartVersion.links.self").String()
+	helmRelease.TagName = "chart: " + gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
 	helmRelease.PublishedAt = gjson.Get(resp, "data.relationships.latestChartVersion.data.created").Time()
 	helmRelease.RepositoryName = gjson.Get(resp, "data.attributes.repo.name").String() + "/" + helmRelease.Name
+	helmRelease.HtmlUrl = "https://hub.helm.sh/charts/" + helmRelease.RepositoryName + "/" + gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
+	helmRelease.Type = "Helm chart"
 
 	return helmRelease
 }
@@ -272,7 +285,7 @@ func main() {
 			helmReleases = append(helmReleases, release)
 		}
 
-//		sort.Sort(DateSorter(helmReleases))
+		sort.Sort(HelmDateSorter(helmReleases))
 
 		c.JSON(http.StatusOK, helmReleases)
 	})
