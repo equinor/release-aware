@@ -1,6 +1,7 @@
 name: 'Release-aware web Docker image create & push'
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master, helm-charts ]
     paths:
