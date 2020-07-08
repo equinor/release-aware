@@ -11,6 +11,8 @@ function getBackgroundColor(severity) {
     switch (severity) {
         case 'warning':
             return '#8e98d5';
+        case 'unknown':
+            return '#BA55D3';
         case 'critical':
             return '#9df79a';
         default:
@@ -71,6 +73,12 @@ const TagName = styled.span`
   text-decoration:  ${props => props.isLatest ? 'underline' : 'none'};
  `;
 
+const AppVersionName = styled.span`
+  font-size: 0.7em;
+  font-weight: ${props => props.isLatest ? 'bold' : 'normal'};
+  text-decoration:  ${props => props.isLatest ? 'underline' : 'none'};
+ `;
+
 
 function EventContainer({releases}) {
     return releases.length === 0 ? (
@@ -82,6 +90,7 @@ function EventContainer({releases}) {
             {
                 releases.map(release => {
                     const isLatest = release.type === 'Latest release';
+                    const isHelmChart = release.type === 'Helm chart';
                     return (
                         <Alert
                             key={release.repository_name}
@@ -91,6 +100,7 @@ function EventContainer({releases}) {
                                 <Title>
                                     <strong>{release.repository_name}</strong> - <TagName
                                     isLatest={isLatest}>{release.tag_name}</TagName>
+                                    <AppVersionName isHelmChart={isHelmChart}>{release.app_version} </AppVersionName>
                                 </Title>
                                 <small>{release.days} days</small>
                             </Header>
