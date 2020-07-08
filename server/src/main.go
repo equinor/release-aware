@@ -14,17 +14,7 @@ import (
 )
 
 type Release struct {
-	Name           string    `json:"name"`
-	TagName        string    `json:"tag_name"`
-	PublishedAt    time.Time `json:"published_at"`
-	Severity       string    `json:"severity"`
-	RepositoryName string    `json:"repository_name"`
-	HtmlUrl        string    `json:"html_url"`
-	Days           int       `json:"days"`
-	Type           string    `json:"type"`
-}
-
-type HelmRelease struct {
+	AppVersionName string    `json:"app_version"`
 	Name           string    `json:"name"`
 	TagName        string    `json:"tag_name"`
 	PublishedAt    time.Time `json:"published_at"`
@@ -45,19 +35,6 @@ func (a DateSorter) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 func (a DateSorter) Less(i, j int) bool {
-	return a[i].PublishedAt.After(a[j].PublishedAt)
-}
-
-// Don't know how to overload in Go, so duplicating..
-type HelmDateSorter []HelmRelease
-
-func (a HelmDateSorter) Len() int {
-	return len(a)
-}
-func (a HelmDateSorter) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-func (a HelmDateSorter) Less(i, j int) bool {
 	return a[i].PublishedAt.After(a[j].PublishedAt)
 }
 
@@ -202,7 +179,7 @@ func getHelmhubRepositories() []string {
 	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
-func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
+func getHelmhubRelease(repositoryName string) (Release, error) {
 	//	curl https://hub.helm.sh/api/chartsvc/v1/charts/stable/sealed-secrets | jq '.data.relationships.latestChartVersion.data.version'
 
 	baseUrl := "https://hub.helm.sh/api/chartsvc/v1/charts/"
@@ -212,10 +189,10 @@ func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 
 	resp, err := grequests.Get(url, requestOptions)
 	if err != nil {
-		return HelmRelease{}, errors.New(err.Error())
+		return Release{}, errors.New(err.Error())
 	}
 	if !resp.Ok {
-		return HelmRelease{}, errors.New(string(resp.Bytes()))
+		return Release{}, errors.New(string(resp.Bytes()))
 	}
 
 	release := parseHelmhubRelease(resp.String())
@@ -223,14 +200,15 @@ func getHelmhubRelease(repositoryName string) (HelmRelease, error) {
 		return release, nil
 	}
 
-	return HelmRelease{}, errors.New("Could not find any helmrelease for " + repositoryName)
+	return Release{}, errors.New("Could not find any helmrelease for " + repositoryName)
 }
 
-func parseHelmhubRelease(resp string) HelmRelease {
-	var helmRelease HelmRelease
+func parseHelmhubRelease(resp string) Release {
+	var helmRelease Release
 
 	helmRelease.Name = gjson.Get(resp, "data.attributes.name").String()
 	helmRelease.TagName = "chart: " + gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
+	helmRelease.AppVersionName = " - app: " + gjson.Get(resp, "data.relationships.latestChartVersion.data.app_version").String()
 	helmRelease.PublishedAt = gjson.Get(resp, "data.relationships.latestChartVersion.data.created").Time()
 	helmRelease.RepositoryName = gjson.Get(resp, "data.attributes.repo.name").String() + "/" + helmRelease.Name
 	helmRelease.HtmlUrl = "https://hub.helm.sh/charts/" + helmRelease.RepositoryName + "/" + gjson.Get(resp, "data.relationships.latestChartVersion.data.version").String()
@@ -261,14 +239,6 @@ func main() {
 			releases = append(releases, release)
 		}
 
-		sort.Sort(DateSorter(releases))
-
-		c.JSON(http.StatusOK, releases)
-	})
-
-	r.GET("api/helmreleases", func(c *gin.Context) {
-		var helmReleases []HelmRelease
-
 		for _, repositoryName := range getHelmhubRepositories() {
 			release, err := getHelmhubRelease(repositoryName)
 			if err != nil {
@@ -288,14 +258,13 @@ func main() {
 				release.Severity = getSeverity(days)
 			}
 			release.Days = days
-			release.Severity = getSeverity(days)
 			release.RepositoryName = repositoryName
-			helmReleases = append(helmReleases, release)
+			releases = append(releases, release)
 		}
 
-		sort.Sort(HelmDateSorter(helmReleases))
+		sort.Sort(DateSorter(releases))
 
-		c.JSON(http.StatusOK, helmReleases)
+		c.JSON(http.StatusOK, releases)
 	})
 
 	r.Run() // listen and serve on 0.0.0.0:8080 by default
