@@ -250,8 +250,8 @@ func main() {
 
 			days := int(time.Now().Sub(release.PublishedAt).Hours() / 24)
 
-			if strings.HasPrefix(release.RepositoryName, "stable") {
-				// Charts from the stable repo always displays as 0 days since last release
+			if strings.HasPrefix(release.RepositoryName, "stable") || strings.HasPrefix(release.RepositoryName, "loki") {
+				// Charts from the loki and stable repos always display 0 days since last release
 				release.Severity = "unknown"
 				release.PublishedAt = time.Now().AddDate(0, -1, 0)
 			} else {
