@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import helmLogo from './helm.png';
 
 const NoReleasesContainer = styled.div`
   display: flex;
@@ -31,6 +32,11 @@ function getBorderColor(severity) {
     }
 }
 
+function getHelmLogo() {
+    return(
+        <img src={helmLogo} width={30} style={{background: 'white', borderRadius: '10px', marginRight: '10px'}} />
+    )
+}
 
 const Alert = styled.div`
   font-size: 1em;
@@ -100,8 +106,9 @@ function EventContainer({releases}) {
                                 <Title>
                                     <strong>{release.repository_name}</strong> - <TagName
                                     isLatest={isLatest}>{release.tag_name}</TagName>
-                                    <AppVersionName isHelmChart={isHelmChart}>{release.app_version} </AppVersionName>
+                                    <AppVersionName>{release.app_version} </AppVersionName>
                                 </Title>
+                                {isHelmChart && getHelmLogo()}
                                 <small>{release.days} days</small>
                             </Header>
                         </Alert>
