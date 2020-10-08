@@ -16,6 +16,8 @@ function getBackgroundColor(severity) {
             return '#BA55D3';
         case 'critical':
             return '#9df79a';
+        case 'error':
+            return '#e7632a';
         default:
             return '#fefefe';
     }
