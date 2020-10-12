@@ -205,11 +205,12 @@ func getHelmhubRelease(repositoryName string) (Release, error) {
 
 func parseHelmhubRelease(resp string) Release {
 	var helmRelease Release
+	var unixTime = gjson.Get(resp, ".created_at").Int()
 
 	helmRelease.Name = gjson.Get(resp, ".normalized_name").String()
 	helmRelease.TagName = "chart: " + gjson.Get(resp, ".version").String()
 	helmRelease.AppVersionName = " - app: " + gjson.Get(resp, ".app_version").String()
-	helmRelease.PublishedAt = gjson.Get(resp, ".created_at").Time()
+	helmRelease.PublishedAt = time.Unix(unixTime, 0)
 	helmRelease.RepositoryName = gjson.Get(resp, ".repository.name").String()
 	helmRelease.HtmlUrl = "https://artifacthub.io/packages/helm/" + helmRelease.RepositoryName + "/" + helmRelease.Name + "/" + gjson.Get(resp, ".version").String()
 	helmRelease.Type = "Helm chart"

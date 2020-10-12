@@ -58,7 +58,7 @@ services:
         webpack/webpack
       HELM_REPOS: |
         gitlab/gitlab,
-        fluxcd/flux,
+        flux/flux,
         jetstack/cert-manager,
         stable/oauth2-proxy
   client:
