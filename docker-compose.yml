@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   server:
-    image: sdpequinor/release-aware-api:1.9.1
+    image: sdpequinor/release-aware-api:1.12.1
     restart: unless-stopped
     command: /scripts/run-local-server.sh
     build:
@@ -58,7 +58,7 @@ services:
         webpack/webpack
       HELM_REPOS: |
         gitlab/gitlab,
-        fluxcd/flux,
+        flux/flux,
         jetstack/cert-manager,
         stable/oauth2-proxy
   client:
