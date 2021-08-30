@@ -205,7 +205,7 @@ func getHelmhubRelease(repositoryName string) (Release, error) {
 
 func parseHelmhubRelease(resp string) Release {
 	var helmRelease Release
-	var unixTime = gjson.Get(resp, "created_at").Int()
+	var unixTime = gjson.Get(resp, "ts").Int()
 
 	helmRelease.Name = gjson.Get(resp, "normalized_name").String()
 	helmRelease.TagName = "chart: " + gjson.Get(resp, "version").String()
