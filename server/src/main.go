@@ -174,12 +174,12 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	return Release{}, errors.New("Could not find any release for " + repositoryName)
 }
 
-func getHelmhubRepositories() []string {
+func getArtifactHubRepositories() []string {
 	repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS"), "\n", "")
 	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
-func getHelmhubRelease(repositoryName string) (Release, error) {
+func getArtifactHubRelease(repositoryName string) (Release, error) {
 	//	curl https://artifacthub.io/api/v1/packages/helm/vmware-tanzu/velero | jq '.version'
 
 	baseUrl := "https://artifacthub.io/api/v1/packages/"
@@ -201,7 +201,7 @@ func getHelmhubRelease(repositoryName string) (Release, error) {
 		return Release{}, errors.New(string(resp.Bytes()))
 	}
 
-	release := parseHelmhubRelease(resp.String())
+	release := parseArtifactHubRelease(resp.String())
 	if !release.PublishedAt.IsZero() {
 		return release, nil
 	}
@@ -209,7 +209,7 @@ func getHelmhubRelease(repositoryName string) (Release, error) {
 	return Release{}, errors.New("Could not find any helmrelease for " + repositoryName)
 }
 
-func parseHelmhubRelease(resp string) Release {
+func parseArtifactHubRelease(resp string) Release {
 	var helmRelease Release
 	var unixTime = gjson.Get(resp, "ts").Int()
 
@@ -246,8 +246,8 @@ func main() {
 			releases = append(releases, release)
 		}
 
-		for _, repositoryName := range getHelmhubRepositories() {
-			release, err := getHelmhubRelease(repositoryName)
+		for _, repositoryName := range getArtifactHubRepositories() {
+			release, err := getArtifactHubRelease(repositoryName)
 			if err != nil {
 				release.RepositoryName = repositoryName
 				release.TagName = err.Error()
