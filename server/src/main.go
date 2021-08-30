@@ -174,16 +174,22 @@ func getGithubRelease(repositoryName string) (Release, error) {
 	return Release{}, errors.New("Could not find any release for " + repositoryName)
 }
 
-func getHelmhubRepositories() []string {
+func getArtifactHubRepositories() []string {
 	repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS"), "\n", "")
 	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
-func getHelmhubRelease(repositoryName string) (Release, error) {
+func getArtifactHubRelease(repositoryName string) (Release, error) {
 	//	curl https://artifacthub.io/api/v1/packages/helm/vmware-tanzu/velero | jq '.version'
 
-	baseUrl := "https://artifacthub.io/api/v1/packages/helm/"
-	url := (baseUrl + repositoryName)
+	baseUrl := "https://artifacthub.io/api/v1/packages/"
+	var kind = "helm"
+
+	if strings.HasPrefix(repositoryName, "community-operators")  { 
+		kind = "olm"
+	}
+
+	url := baseUrl + kind + "/" + repositoryName
 
 	requestOptions := &grequests.RequestOptions{}
 
@@ -195,7 +201,7 @@ func getHelmhubRelease(repositoryName string) (Release, error) {
 		return Release{}, errors.New(string(resp.Bytes()))
 	}
 
-	release := parseHelmhubRelease(resp.String())
+	release := parseArtifactHubRelease(resp.String())
 	if !release.PublishedAt.IsZero() {
 		return release, nil
 	}
@@ -203,7 +209,7 @@ func getHelmhubRelease(repositoryName string) (Release, error) {
 	return Release{}, errors.New("Could not find any helmrelease for " + repositoryName)
 }
 
-func parseHelmhubRelease(resp string) Release {
+func parseArtifactHubRelease(resp string) Release {
 	var helmRelease Release
 	var unixTime = gjson.Get(resp, "ts").Int()
 
@@ -240,8 +246,8 @@ func main() {
 			releases = append(releases, release)
 		}
 
-		for _, repositoryName := range getHelmhubRepositories() {
-			release, err := getHelmhubRelease(repositoryName)
+		for _, repositoryName := range getArtifactHubRepositories() {
+			release, err := getArtifactHubRelease(repositoryName)
 			if err != nil {
 				release.RepositoryName = repositoryName
 				release.TagName = err.Error()
@@ -250,13 +256,7 @@ func main() {
 
 				days := int(time.Now().Sub(release.PublishedAt).Hours() / 24)
 
-				if strings.HasPrefix(release.RepositoryName, "stable") || strings.HasPrefix(release.RepositoryName, "loki") || strings.HasPrefix(release.RepositoryName, "nginx") {
-					// Charts from the loki, nginx and stable repos always display 0 days since last release
-					release.Severity = "unknown"
-					release.PublishedAt = time.Now().AddDate(0, -1, 0)
-				} else {
-					release.Severity = getSeverity(days)
-				}
+				release.Severity = getSeverity(days)
 				release.Days = days
 				release.RepositoryName = repositoryName
 			}
