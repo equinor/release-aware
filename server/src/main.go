@@ -179,11 +179,22 @@ func getHelmhubRepositories() []string {
 	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
 }
 
+func getHelmhubOlmRepositories() []string {
+	repositories := strings.ReplaceAll(os.Getenv("HELM_REPOS_OLM"), "\n", "")
+	return strings.Split(strings.ReplaceAll(repositories, " ", ""), ",")
+}
+
 func getHelmhubRelease(repositoryName string) (Release, error) {
 	//	curl https://artifacthub.io/api/v1/packages/helm/vmware-tanzu/velero | jq '.version'
 
-	baseUrl := "https://artifacthub.io/api/v1/packages/helm/"
-	url := (baseUrl + repositoryName)
+	baseUrl := "https://artifacthub.io/api/v1/packages/"
+	string kind = "helm"
+
+	if strings.HasPrefix(repositoryName, "community-operators")  { 
+		kind = "olm"
+	}
+
+	url := baseUrl + kind + "/" + repositoryName
 
 	requestOptions := &grequests.RequestOptions{}
 
